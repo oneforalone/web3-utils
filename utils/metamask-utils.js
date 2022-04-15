@@ -14,17 +14,6 @@ const connectMetaMask = async() => {
   }
 };
 
-async function add_network(network_info) {
-  try {
-    await provider.request({
-      method: 'wallet_addEthereumChain',
-      params: [network_info]
-    })
-  } catch (err) {
-    console.log(err)
-  }
-}
-
 //
 // todo: need two mappings: (maybe json format is proper)
 //  { chainId: {
@@ -35,30 +24,38 @@ async function add_network(network_info) {
 //     },
 //     ....}
 //
-
 const chainInfo = require("./chains.json");
-async function switch_network(chain_id) {
-  const current_chain_id = await provider.request({ method: 'eth_chainId' });
-  if (current_chain_id != chain_id) {
+
+// from https://docs.metamask.io/guide/rpc-api.html#unrestricted-methods
+async function add_network(chain_id) {
+  try {
+    let chainId = '0x' + parseInt(chain_id, 10).toString(16);
     let network_info = {
-      chainId: chain_id,
+      chainId: chainId,
       chainName: chainInfo[chain_id].name,
       rpcUrls: chainInfo[chain_id].RPC,
       blockExplorerUrls: chainInfo[chain_id].exploerURL,
-      NativeCurrency: chainInfo[chain_id].currency
+      nativeCurrency: chainInfo[chain_id].currency,
     };
-    add_network(network_info);
+    await provider.request({
+      method: 'wallet_addEthereumChain',
+      params: [network_info]
+    })
+  } catch (err) {
+    console.log(err)
+  }
+}
 
-    try {
-      await provider.request({
-        method: 'wallet_switchEthereumChain',
-        params: [{ chainId: chain_id }],
-      })
-    } catch (err) {
-      if (err.code === 4902) {
-        console.log("This network is not available in your metamask, please add it");
-      }
-      console.log("Failed to switch to the network.");
+// from https://docs.metamask.io/guide/rpc-api.html#unrestricted-methods
+async function switch_network(chain_id) {
+  try {
+    await provider.request({
+      method: 'wallet_switchEthereumChain',
+      params: [{ chainId: chain_id }],
+    });
+  } catch (switchError) {
+    if (switchError.code === 4902) {
+        add_network(network_info);
     }
   }
 }
