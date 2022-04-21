@@ -1,5 +1,10 @@
 {
   "dependencies": {
+    "awesome-qr": "^2.1.5-rc.0",
+    "bip32": "^3.0.1",
+    "bitcoinjs-lib": "^6.0.1",
+    "ecpair": "^2.0.1",
+    "python-shell": "^3.0.1",
     "web3": "^1.7.3"
   }
 }
