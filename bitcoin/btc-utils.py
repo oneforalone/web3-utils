@@ -40,6 +40,16 @@ def withdraw(from_account, to_addr, amount):
   return tx.txhash
 
 
+# checkout the total balance
+def checkouts(accounts, balance):
+  balance_sum = 0
+  for account in accounts:
+    balance_sum += get_balance(account)
+  if (balance_sum != balance):
+    return balance_sum - balance
+  return 0
+
+
 if __name__ == '__main__':
   parser = argparse.ArgumentParser()
   parser.add_argument("method")
