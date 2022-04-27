@@ -34,19 +34,36 @@ async function get_price(crypto) {
   const price_feed = new web3.eth.Contract(CRYPTO_ORACLE_ABI, CRYPTO_ORACLE_ADDR);
 
   let decimals = await price_feed.methods.decimals().call();
-  await price_feed.methods.latestRoundData().call()
+  return price_feed.methods.latestRoundData().call()
     .then((res) => {
       let price = res.answer / ( 10**decimals );
-      console.log("The price of %s is : %s", crypto, price);
-      // return price;
-      process.exit(0);
+      // console.log("The price of %s is : %s", crypto, price);
+      return price;
     })
     .catch((err) => {
-
       console.log(err);
-      // return -1;
-      process.exit(-1);
+      return -1;
     });
 }
 
-get_price("eth")
+/**
+ * convert all cryptos to btc
+ * crypto args format:
+ *   ['crypto1', crypto1_amount, 'crypto2', crypto2_amount, ...]
+ */
+async function unify_cryptos2btc(cryptos) {
+  btc_price = await get_price('btc').then((res) => { return res });
+
+  sum = 0;
+  for (var i = 0; i < cryptos.length; i = i + 2) {
+    crypto_price = await get_price(cryptos[i]).then((res) => { return res });
+    ratio = crypto_price / btc_price;
+    crypto2btc = cryptos[i+1] * ratio;
+    sum += crypto2btc;
+  }
+  // fix the decimal of bitcoin: 8
+  sum = parseFloat(sum.toFixed(9).slice(0, -1));
+  return sum
+}
+
+unify_cryptos2btc(['usdt', 10000, 'usdc', 1000, 'btc', 3])
